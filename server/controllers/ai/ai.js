@@ -28,9 +28,9 @@ const getAi = async (req, res) => {
 
         // Check if index exists, create if not
         const indexesResponse = await pinecone.listIndexes();
-        console.log('Existing Indexes:', indexesResponse); // Debug log to inspect response
-        const existingIndexes = indexesResponse.indexes || []; // Fallback to empty array if no indexes property
-        const indexExists = existingIndexes.some(index => 
+        console.log('Existing Indexes:', indexesResponse);
+        const existingIndexes = indexesResponse.indexes || [];
+        const indexExists = existingIndexes.some(index =>
             typeof index === 'string' ? index === INDEX_NAME : index.name === INDEX_NAME
         );
 
@@ -129,4 +129,36 @@ const clearConversation = async (user_uuid) => {
     }
 };
 
-module.exports = { getAi, clearConversation };
+
+
+// Generate report for user based on conversation history
+const generateReport = async (req, res) => {
+    const { user_uuid } = req.body;
+    try {
+        const index = pinecone.index(INDEX_NAME);
+        const queryResponse = await index.namespace(`user_${user_uuid}`).query({
+            topK: 100,
+            includeValues: true,
+            includeMetadata: true
+        });
+
+        const conversationHistory = queryResponse.matches.map(match => match.metadata);
+        const chat = new ChatGoogleGenerativeAI({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY,
+            model: "gemini-1.5-pro"
+        });
+
+        // Generate response (example logic)
+        const aiResponse = await chat.invoke([
+            ["system", `You are a helpful AI assistant.On the basis of our conversation ${conversationHistory}, here is a summary of your recent interactions.`],
+            ["human", question]
+        ]);
+
+        return aiResponse;
+    } catch (error) {
+        console.error('Error generating report:', error.stack);
+        return [];
+    }
+};
+
+module.exports = { getAi, clearConversation, generateReport };
