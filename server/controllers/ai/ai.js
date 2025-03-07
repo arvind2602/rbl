@@ -136,28 +136,49 @@ const generateReport = async (req, res) => {
     const { user_uuid } = req.body;
     try {
         const index = pinecone.index(INDEX_NAME);
+
+        // Initialize embeddings to create a generic query vector
+        const embeddings = new GoogleGenerativeAIEmbeddings({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY,
+            model: "embedding-001"
+        });
+
+        // Create a generic query vector to retrieve conversation history
+        const genericQuery = "Summarize my recent interactions";
+        const queryEmbedding = await embeddings.embedQuery(genericQuery);
+
+        // Query Pinecone with the generic vector
         const queryResponse = await index.namespace(`user_${user_uuid}`).query({
+            vector: queryEmbedding, // Provide the required vector
             topK: 100,
             includeValues: true,
             includeMetadata: true
         });
 
+        // Extract conversation history from the query response
         const conversationHistory = queryResponse.matches.map(match => match.metadata);
+
+        // Initialize the chat model
+        const { ChatGoogleGenerativeAI } = await import('@langchain/google-genai');
         const chat = new ChatGoogleGenerativeAI({
             apiKey: process.env.GOOGLE_GENAI_API_KEY,
             model: "gemini-1.5-pro"
         });
 
-        // Generate response (example logic)
+        // Generate a summary based on the conversation history
         const aiResponse = await chat.invoke([
-            ["system", `You are a helpful AI assistant.On the basis of our conversation ${conversationHistory}, here is a summary of your recent interactions.`],
-            ["human", question]
+            [
+                "system",
+                `You are a helpful AI assistant. Based on the conversation history: ${JSON.stringify(conversationHistory)}, provide a summary of the user's recent interactions.`
+            ],
+            ["human", "Please summarize my recent interactions."]
         ]);
 
-        return aiResponse;
+        // Return the response to the client
+        return res.json({ content: aiResponse.content });
     } catch (error) {
         console.error('Error generating report:', error.stack);
-        return [];
+        return res.status(500).json({ error: 'Failed to generate report', details: error.message });
     }
 };
 
