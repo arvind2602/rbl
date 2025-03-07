@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Footer from "@/components/Footer";
+import Footer from "../../components/Footer";
 import markdownToTxt from 'markdown-to-txt';
 import { Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import React from "react";
 
 function Page() {
     const [answer, setAnswer] = useState(null);
@@ -29,6 +30,8 @@ function Page() {
 
             return () => clearInterval(interval);
         }
+        const response = axios.get("http://127.0.0.1:8000")
+        console.log(response)
     }, [loading]);
 
     const handleDownload = () => {
@@ -347,7 +350,7 @@ function Page() {
         const data = JSON.stringify(studentData);
 
         try {
-            const response = await axios.post("https://sepm.onrender.com/complete", { message, data });
+            const response = await axios.post("http://127.0.0.1:8000/complete", { message, data });
             form.reset();
             setAnswer(response.data.result.text);
         } catch (error) {
@@ -363,7 +366,7 @@ function Page() {
             <div className="max-w-3xl mx-auto px-4 py-12">
                 <div className="bg-gray-800 bg-opacity-50 backdrop-blur-lg rounded-xl shadow-2xl p-6 border border-gray-700">
                     <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        WISDOM AI 
+                        WISDOM AI
                     </h1>
 
                     <form onSubmit={handleSubmit} className="space-y-4">

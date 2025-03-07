@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  user_uuid String    @id @unique @default(dbgenerated("gen_random_uuid()"))
+  email     String    @unique
+  name      String?
+  password  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@index([email])
+  @@index([user_uuid])
+  @@map("users")
+}
+
+model erp {
+  erp_uuid  String   @id @default(dbgenerated("gen_random_uuid()"))
+  user_uuid String   @map("user_uuid")
+  acadmics  Json?
+  others    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+}
