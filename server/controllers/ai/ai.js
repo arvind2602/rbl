@@ -1,20 +1,132 @@
 const Joi = require('joi');
 const { pool } = require('../../config/db');
-const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+const dotenv = require('dotenv');
+const { Pinecone } = require('@pinecone-database/pinecone');
+const { GoogleGenerativeAIEmbeddings } = require('@langchain/google-genai');
 
-const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-1.5-pro",
-    temperature: 0,
-    maxRetries: 2,
-    // other params...
+dotenv.config();
+
+// Initialize Pinecone client
+const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
 });
+const INDEX_NAME = 'rbl-sdnohw2';
 
+const getAi = async (req, res) => {
+    try {
+        const { question, user_uuid } = req.body;
 
-const aiMsg = await llm.invoke([
-    [
-        "system",
-        "You are a helpful assistant that translates English to French. Translate the user sentence.",
-    ],
-    ["human", "I love programming."],
-]);
-aiMsg;
+        // Validate input
+        const schema = Joi.object({
+            question: Joi.string().required(),
+            user_uuid: Joi.string().required()
+        });
+        await schema.validateAsync({ question, user_uuid });
+
+        // Initialize index
+        const index = pinecone.index(INDEX_NAME);
+
+        // Check if index exists, create if not
+        const indexesResponse = await pinecone.listIndexes();
+        console.log('Existing Indexes:', indexesResponse); // Debug log to inspect response
+        const existingIndexes = indexesResponse.indexes || []; // Fallback to empty array if no indexes property
+        const indexExists = existingIndexes.some(index => 
+            typeof index === 'string' ? index === INDEX_NAME : index.name === INDEX_NAME
+        );
+
+        if (!indexExists) {
+            console.log(`Creating index: ${INDEX_NAME}`);
+            await pinecone.createIndex({
+                name: INDEX_NAME,
+                dimension: 768,
+                metric: 'cosine',
+                spec: {
+                    serverless: {
+                        cloud: 'aws',
+                        region: 'us-east-1'
+                    }
+                }
+            });
+            // Wait for the index to be ready (adjust delay as needed)
+            await new Promise(resolve => setTimeout(resolve, 5000)); // 5-second delay
+            console.log(`Index ${INDEX_NAME} created successfully`);
+        }
+
+        // Initialize Google AI and Embeddings
+        const { ChatGoogleGenerativeAI } = await import('@langchain/google-genai');
+        const embeddings = new GoogleGenerativeAIEmbeddings({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY,
+            model: "embedding-001"
+        });
+
+        // Get previous conversations
+        let conversationHistory = [];
+        const questionEmbedding = await embeddings.embedQuery(question);
+        const queryResponse = await index.namespace(`user_${user_uuid}`).query({
+            vector: questionEmbedding,
+            topK: 10,
+            includeValues: true,
+            includeMetadata: true
+        });
+
+        // Process conversation history (assuming this part was in your original code)
+        if (queryResponse.matches.length > 0) {
+            conversationHistory = queryResponse.matches.map(match => match.metadata);
+        }
+
+        // Initialize Chat model (example implementation)
+        const chat = new ChatGoogleGenerativeAI({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY,
+            model: "gemini-1.5-pro"
+        });
+
+        // Generate response (example logic)
+        const aiResponse = await chat.invoke([
+            ["system", "You are a helpful AI assistant."],
+            ["human", question]
+        ]);
+        const responseEmbedding = await embeddings.embedQuery(aiResponse.content);
+
+        // Upsert question and response to Pinecone
+        await index.namespace(`user_${user_uuid}`).upsert([
+            {
+                id: `${user_uuid}_${Date.now()}_q`,
+                values: questionEmbedding,
+                metadata: {
+                    type: 'question',
+                    content: question,
+                    timestamp: Date.now()
+                }
+            },
+            {
+                id: `${user_uuid}_${Date.now()}_r`,
+                values: responseEmbedding,
+                metadata: {
+                    type: 'response',
+                    content: aiResponse.content,
+                    timestamp: Date.now()
+                }
+            }
+        ]);
+
+        return res.json({ content: aiResponse.content });
+    } catch (error) {
+        console.error("Error Details:", error.stack);
+        return res.status(500).json({ error: 'Server error', details: error.message });
+    }
+};
+
+// Updated clearConversation function
+const clearConversation = async (user_uuid) => {
+    try {
+        const index = pinecone.index(INDEX_NAME);
+        await index.namespace(`user_${user_uuid}`).deleteAll();
+        console.log(`Conversation cleared for user_${user_uuid}`);
+        return true;
+    } catch (error) {
+        console.error('Error clearing conversation:', error.stack);
+        return false;
+    }
+};
+
+module.exports = { getAi, clearConversation };
