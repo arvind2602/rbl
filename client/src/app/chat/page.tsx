@@ -30,7 +30,7 @@ function Page() {
 
             return () => clearInterval(interval);
         }
-        const response = axios.get("http://127.0.0.1:8000")
+        const response = axios.get("")
         console.log(response)
     }, [loading]);
 
@@ -350,7 +350,7 @@ function Page() {
         const data = JSON.stringify(studentData);
 
         try {
-            const response = await axios.post("http://127.0.0.1:8000/complete", { message, data });
+            const response = await axios.post("http://localhost:5000/complete", { message, data });
             form.reset();
             setAnswer(response.data.result.text);
         } catch (error) {
