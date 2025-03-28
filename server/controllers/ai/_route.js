@@ -3,7 +3,7 @@ const router = express.Router();
 const ai = require('./ai');
 
 
-router.get('/create', ai.getAi);
+router.post('/create', ai.getAi);
 router.get('/report', ai.generateReport);
 
 

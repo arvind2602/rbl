@@ -133,7 +133,7 @@ const clearConversation = async (user_uuid) => {
 
 // Generate report for user based on conversation history
 const generateReport = async (req, res) => {
-    const { user_uuid } = req.body;
+    const { user_uuid } = req.query;
     try {
         const index = pinecone.index(INDEX_NAME);
 
