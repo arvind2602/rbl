@@ -8,27 +8,50 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from 'next/link'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import axios from 'axios'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Retrieve user data from local storage
-        const existingUsers = localStorage.getItem('users') ? JSON.parse(localStorage.getItem('users')!) : []
+        // Basic client-side validation
+        if (!email.includes('@') || !email.includes('.')) {
+            toast.error('Please enter a valid email address!')
+            return
+        }
+        if (password.length < 6) {
+            toast.error('Password must be at least 6 characters long!')
+            return
+        }
 
-        // Check if a user with the provided email and password exists
-        const user = existingUsers.find((user: any) => user.email === email && user.password === password)
+        setIsLoading(true)
 
-        if (user) {
-            console.log('Login successful for:', { email })
-            toast.success('Login successful!')
-            window.location.href = '/dashboard'  // Redirect to the dashboard
-        } else {
-            console.error('Login failed: Invalid credentials')
-            toast.error('Login failed: Invalid email or password')
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/login', {
+                email,
+                password
+            })
+
+            if (response.status === 200) {
+                console.log('Login successful for:', { email })
+                toast.success('Login successful!')
+                setTimeout(() => {
+                    window.location.href = '/dashboard'
+                }, 2000)
+            }
+        } catch (error: any) {
+            if (error.response) {
+                toast.error(error.response.data || 'Login failed: Invalid email or password')
+            } else {
+                toast.error('Something went wrong. Please try again.')
+            }
+            console.error('Login error:', error)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -50,6 +73,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
                             />
                         </div>
@@ -62,11 +86,16 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
                             />
                         </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-                            Login
+                        <Button
+                            type="submit"
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Logging in...' : 'Login'}
                         </Button>
                     </form>
                 </CardContent>

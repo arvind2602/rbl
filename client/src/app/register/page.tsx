@@ -8,33 +8,49 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from 'next/link'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import axios from 'axios'
 
 export default function RegisterPage() {
-    const [firstName, setFirstName] = useState('')
-    const [lastName, setLastName] = useState('')
+    const [name, setName] = useState('')  // Changed from firstName/lastName to single name field
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Simple validation
+        // Client-side validation
         if (password !== confirmPassword) {
             toast.error('Passwords do not match!')
             return
         }
 
-        // Simulate saving data to local storage
-        const existingUsers = localStorage.getItem('users') ? JSON.parse(localStorage.getItem('users')!) : []
-        existingUsers.push({ firstName, lastName, email, password, timestamp: new Date() })
+        setIsLoading(true)
 
-        // Save updated users array back to local storage
-        localStorage.setItem('users', JSON.stringify(existingUsers))
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/register', {
+                name,
+                email,
+                password
+            })
 
-        console.log('Registration attempted with:', { firstName, lastName, email, password })
-        toast.success('Registration successful!')
-        window.location.href = '/login'  // Redirect to login page
+            if (response.status === 201) {
+                toast.success('Registration successful!')
+                setTimeout(() => {
+                    window.location.href = '/login'
+                }, 2000)
+            }
+        } catch (error: any) {
+            if (error.response) {
+                toast.error(error.response.data || 'Registration failed!')
+            } else {
+                toast.error('Something went wrong. Please try again.')
+            }
+            console.error('Registration error:', error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -46,27 +62,16 @@ export default function RegisterPage() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleRegister} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
-                                <Input
-                                    id="firstName"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    required
-                                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
-                                <Input
-                                    id="lastName"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    required
-                                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
-                                />
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="name" className="text-gray-300">Name</Label>
+                            <Input
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email" className="text-gray-300">Email</Label>
@@ -77,6 +82,7 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
                             />
                         </div>
@@ -89,6 +95,7 @@ export default function RegisterPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
                             />
                         </div>
@@ -101,11 +108,16 @@ export default function RegisterPage() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder-gray-500"
                             />
                         </div>
-                        <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-                            Register
+                        <Button
+                            type="submit"
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Registering...' : 'Register'}
                         </Button>
                     </form>
                 </CardContent>

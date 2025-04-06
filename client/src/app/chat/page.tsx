@@ -69,7 +69,7 @@ function Page() {
 
         try {
             const response = await axios.post(
-                "https://aicounsellor.vercel.app/api/ai/create",
+                "http://localhost:5000/api/ai/create",
                 { question: message, user_uuid }
             );
 
@@ -92,7 +92,7 @@ function Page() {
 
         try {
             const response = await axios.get(
-                "https://aicounsellor.vercel.app/api/ai/report",
+                "http://localhost:5000/api/ai/report",
                 { params: { user_uuid } }
             );
             setReport(response.data.content);
