@@ -79,6 +79,10 @@ export default function StudentDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
+        if (!cookies.get("user_uuid")) {
+            window.location.href = "/login";
+        }
         const fetchData = async () => {
             try {
                 setLoading(true);
@@ -223,8 +227,8 @@ export default function StudentDashboard() {
                                     ID: {studentData.user_uuid.substring(0, 8)}
                                 </Badge>
                                 <Badge variant="outline" className={`px-3 py-1 ${enrollmentInfo.status === "Active"
-                                        ? "bg-green-950/40 text-green-300 border-green-800/50"
-                                        : "bg-orange-950/40 text-orange-300 border-orange-800/50"
+                                    ? "bg-green-950/40 text-green-300 border-green-800/50"
+                                    : "bg-orange-950/40 text-orange-300 border-orange-800/50"
                                     }`}>
                                     {enrollmentInfo.status || "Status"}
                                 </Badge>
@@ -315,8 +319,8 @@ export default function StudentDashboard() {
                                 <div className="flex items-center justify-between">
                                     <span className="text-zinc-400">Payment Status</span>
                                     <Badge className={`${financialInfo.outstanding_balance > 0
-                                            ? 'bg-red-900/50 text-red-200 hover:bg-red-900/70'
-                                            : 'bg-green-900/50 text-green-200 hover:bg-green-900/70'
+                                        ? 'bg-red-900/50 text-red-200 hover:bg-red-900/70'
+                                        : 'bg-green-900/50 text-green-200 hover:bg-green-900/70'
                                         }`}>
                                         {financialInfo.outstanding_balance > 0 ? "Pending" : "Paid"}
                                     </Badge>
@@ -719,8 +723,8 @@ export default function StudentDashboard() {
                                         <CardContent>
                                             <div className="space-y-4">
                                                 <div className={`text-4xl font-bold text-center py-4 ${financialInfo.outstanding_balance > 0
-                                                        ? "text-red-400"
-                                                        : "text-green-400"
+                                                    ? "text-red-400"
+                                                    : "text-green-400"
                                                     }`}>
                                                     ${financialInfo.outstanding_balance.toLocaleString()}
                                                 </div>
@@ -763,8 +767,8 @@ export default function StudentDashboard() {
                                                 <div className="flex justify-between items-center pt-2">
                                                     <span className="font-medium">Payment Status</span>
                                                     <Badge className={`${financialInfo.outstanding_balance > 0
-                                                            ? "bg-red-900/50 text-red-200"
-                                                            : "bg-green-900/50 text-green-200"
+                                                        ? "bg-red-900/50 text-red-200"
+                                                        : "bg-green-900/50 text-green-200"
                                                         }`}>
                                                         {financialInfo.outstanding_balance > 0 ? "Pending" : "Completed"}
                                                     </Badge>

@@ -6,6 +6,7 @@ import markdownToTxt from 'markdown-to-txt';
 import { Download, Send } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import React from "react";
+import cookies from "js-cookie";
 
 function Page() {
     const [answer, setAnswer] = useState(null);
@@ -17,6 +18,9 @@ function Page() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        if (!cookies.get("user_uuid")) {
+            window.location.href = "/login";
+        }
         let interval: string | number | NodeJS.Timeout | undefined;
         if (loading) {
             const loadingStates = [
