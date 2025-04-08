@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import axios from 'axios'
 
 export default function RegisterPage() {
-    const [name, setName] = useState('')  // Changed from firstName/lastName to single name field
+    const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')

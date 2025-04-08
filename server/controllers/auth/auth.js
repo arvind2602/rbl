@@ -1,7 +1,10 @@
 const bcrypt = require('bcrypt');
-const Joi = require('joi');  // Import Joi for validation
+const Joi = require('joi');
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 const { pool } = require('../../config/db');
 
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET || "random";
 // Joi Validation Schemas
 const registerSchema = Joi.object({
     name: Joi.string().min(3).required(),
@@ -14,7 +17,7 @@ const loginSchema = Joi.object({
     password: Joi.string().min(6).required()
 });
 
-// Register User API
+// Register User API (unchanged)
 const Register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -40,6 +43,11 @@ const Register = async (req, res) => {
             [name, email, hashedPassword]
         );
 
+        const newErp = await pool.query(
+            'INSERT INTO erp (user_uuid, personal_info, enrollment_info, financial_info) VALUES ($1, $2, $3, $4) RETURNING *',
+            [newUser.rows[0].user_uuid, {}, {}, {}]
+        );
+
         res.status(201).json(newUser.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -47,7 +55,7 @@ const Register = async (req, res) => {
     }
 };
 
-// Login User API
+// Login User API (updated to send token)
 const Login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -70,7 +78,22 @@ const Login = async (req, res) => {
             return res.status(400).json('Invalid email or password');
         }
 
-        res.status(200).json(user.rows[0]);
+        // Generate JWT token
+        const token = jwt.sign(
+            { id: user.rows[0].id, email: user.rows[0].email }, // Payload (avoid sensitive data like password)
+            JWT_SECRET,
+            { expiresIn: '7d' } // Token expires in 7 days
+        );
+
+        // Send token and user data in response
+        res.status(200).json({
+            user: {
+                id: user.rows[0].user_uuid,
+                name: user.rows[0].name,
+                email: user.rows[0].email
+            },
+            token
+        });
     } catch (error) {
         console.error(error.message);
         res.status(500).json('Server error');

@@ -29,9 +29,10 @@ model User {
 }
 
 model erp {
-  erp_uuid  String   @id @default(dbgenerated("gen_random_uuid()"))
-  user_uuid String   @map("user_uuid")
-  acadmics  Json?
-  others    Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  erp_uuid        String   @id @default(dbgenerated("gen_random_uuid()"))
+  user_uuid       String   @map("user_uuid")
+  personal_info   Json?
+  enrollment_info Json?
+  financial_info  Json?
+  createdAt       DateTime @default(now()) @map("created_at")
 }

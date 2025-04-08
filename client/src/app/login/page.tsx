@@ -1,59 +1,67 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { Button } from "../../components/ui/button"
-import { Input } from "../../components/ui/input"
-import { Label } from "../../components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
-import Link from 'next/link'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import axios from 'axios'
+import React, { useState } from 'react';
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
+import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
         // Basic client-side validation
         if (!email.includes('@') || !email.includes('.')) {
-            toast.error('Please enter a valid email address!')
-            return
+            toast.error('Please enter a valid email address!');
+            return;
         }
         if (password.length < 6) {
-            toast.error('Password must be at least 6 characters long!')
-            return
+            toast.error('Password must be at least 6 characters long!');
+            return;
         }
 
-        setIsLoading(true)
+        setIsLoading(true);
 
         try {
             const response = await axios.post('http://localhost:5000/api/auth/login', {
                 email,
                 password
-            })
+            });
 
             if (response.status === 200) {
-                console.log('Login successful for:', { email })
-                toast.success('Login successful!')
-                setTimeout(() => {
-                    window.location.href = '/dashboard'
-                }, 2000)
+                const token = response.data.token; // This matches the new API response
+                if (token) {
+                    Cookies.set('token', token, { expires: 7, secure: true, sameSite: 'strict' });
+                    Cookies.set('user_uuid', response.data.user.id, { expires: 7, secure: true, sameSite: 'strict' });
+                    console.log('Login successful for:', { email });
+                    toast.success('Login successful!');
+                    setTimeout(() => {
+                        window.location.href = '/erp';
+                    }, 2000);
+                } else {
+                    throw new Error('No token received from server');
+                }
             }
         } catch (error: any) {
             if (error.response) {
-                toast.error(error.response.data || 'Login failed: Invalid email or password')
+                toast.error(error.response.data || 'Login failed: Invalid email or password');
             } else {
-                toast.error('Something went wrong. Please try again.')
+                toast.error('Something went wrong. Please try again.');
             }
-            console.error('Login error:', error)
+            console.error('Login error:', error);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-900 via-gray-900 to-black p-4">
@@ -110,5 +118,5 @@ export default function LoginPage() {
             </Card>
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover />
         </div>
-    )
+    );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/utils/cn";
 import Link from "next/link";
 import { Sparkles, Brain, Menu as MenuIcon, LogIn } from "lucide-react";
@@ -13,15 +13,36 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import Cookies from "js-cookie";
 
 function Navbar({ className }: { className?: string }) {
   const [active, setActive] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check for token on mount and update login state
+  useEffect(() => {
+    const token = Cookies.get("token");
+    setIsLoggedIn(!!token); // True if token exists, false otherwise
+  }, []);
+
+  const handleMenuItemClick = (item: string) => {
+    setActive(item);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleSignout = () => {
+    Cookies.remove("token");
+    Cookies.remove("user_uuid"); // Remove user UUID cookie
+    setIsLoggedIn(false); // Update state
+    window.location.href = "/"; // Redirect to home page (optional)
+  };
 
   const menuItems = [
     { href: "/", label: "Home" },
     { href: "/about", label: "About" },
     { href: "/chat", label: "Chat" },
+    { href: "/erp", label: "Profile" },
   ];
 
   const Logo = () => (
@@ -72,14 +93,19 @@ function Navbar({ className }: { className?: string }) {
                   </Link>
                 </NavigationMenuItem>
               ))}
-              
               <NavigationMenuItem>
-                <Link href="/login">
-                  <Button variant="default" size="sm" className="gap-2">
-                    <LogIn className="w-4 h-4" />
-                    Login
+                {isLoggedIn ? (
+                  <Button variant="default" size="sm" onClick={handleSignout}>
+                    Signout
                   </Button>
-                </Link>
+                ) : (
+                  <Link href="/login">
+                    <Button variant="default" size="sm" className="gap-2">
+                      <LogIn className="w-4 h-4" />
+                      Login
+                    </Button>
+                  </Link>
+                )}
               </NavigationMenuItem>
             </div>
           </NavigationMenuList>
@@ -124,12 +150,18 @@ function Navbar({ className }: { className?: string }) {
                     exit={{ x: -20, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="default" className="w-full gap-2">
-                        <LogIn className="w-4 h-4" />
-                        Login
+                    {isLoggedIn ? (
+                      <Button variant="default" className="w-full" onClick={handleSignout}>
+                        Signout
                       </Button>
-                    </Link>
+                    ) : (
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="default" className="w-full gap-2">
+                          <LogIn className="w-4 h-4" />
+                          Login
+                        </Button>
+                      </Link>
+                    )}
                   </motion.div>
                 </nav>
               </SheetContent>
