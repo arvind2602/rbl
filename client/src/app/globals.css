@@ -21,26 +21,20 @@
     text-wrap: balance;
   }
 }
+
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
 @font-face {
   font-family: 'Satoshi';
-  src:url('/Satoshi_Complete/Fonts/Variable/Satoshi-Variable.ttf') format('truetype');
+  src: url('/Satoshi_Complete/Fonts/Variable/Satoshi-Variable.ttf') format('truetype');
   font-weight: 400;
 }
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -69,6 +63,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -96,11 +91,263 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes floatSlow {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+@keyframes floatMedium {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(-3deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.animate-float-medium {
+  animation: floatMedium 6s ease-in-out infinite;
+}
+
+@keyframes pulseSlow {
+  0% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+@keyframes pulseMedium {
+  0% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-medium {
+  animation: pulseMedium 3s ease-in-out infinite;
+}
+
+@keyframes pulseFast {
+  0% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-fast {
+  animation: pulseFast 2s ease-in-out infinite;
+}
+
+@keyframes pulseSuperSlow {
+  0% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.animate-pulse-super-slow {
+  animation: pulseSuperSlow 8s ease-in-out infinite;
+}
+
+@keyframes leaf {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(5deg);
+  }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(-5deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-leaf {
+  animation: leaf 3s ease-in-out infinite;
+}
+
+@keyframes growLeft {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.2);
+    transform-origin: bottom;
+  }
+
+  100% {
+    opacity: 0.7;
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+.animate-grow-left {
+  animation: growLeft 3s ease-out forwards;
+}
+
+@keyframes growRight {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.2);
+    transform-origin: bottom;
+  }
+
+  100% {
+    opacity: 0.7;
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+.animate-grow-right {
+  animation: growRight 3s ease-out forwards;
+}
+
+@keyframes growCircle {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-grow-circle {
+  animation: growCircle 2s ease-out forwards;
+}
+
+.path-animation {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: dash 5s ease-in-out forwards;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Custom scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 20px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
 }

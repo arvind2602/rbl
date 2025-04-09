@@ -42,6 +42,7 @@ export default function LoginPage() {
                 if (token) {
                     Cookies.set('token', token, { expires: 7, secure: true, sameSite: 'strict' });
                     Cookies.set('user_uuid', response.data.user.id, { expires: 7, secure: true, sameSite: 'strict' });
+                    Cookies.set('name', response.data.user.name, { expires: 7, secure: true, sameSite: 'strict' });
                     console.log('Login successful for:', { email });
                     toast.success('Login successful!');
                     setTimeout(() => {

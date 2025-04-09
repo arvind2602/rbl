@@ -169,8 +169,21 @@ const generateReport = async (req, res) => {
         const aiResponse = await chat.invoke([
             [
                 "system",
-                `You are a helpful AI assistant. Based on the conversation history: ${JSON.stringify(conversationHistory)}, provide a summary of the user's recent interactions.`
-            ],
+                `You are an assistant for counselling professionals. Generate a brief, focused report summarizing a client's status across all sessions to date Based on the conversation history: ${JSON.stringify(conversationHistory)}:
+Client Snapshot
+
+Core concerns: List 2-3 primary issues
+Current status: Brief assessment of present state
+
+Key Observations
+AreaPattern/ThemeCurrent StatusEmotionalKey emotional patternsImproving/Stable/DecliningBehavioralNotable behaviorsImproving/Stable/DecliningCognitiveThought patternsImproving/Stable/Declining
+Clinical Notes
+
+Most effective approaches used
+Significant changes observed
+Recommended focus areas
+
+Keep the entire report under 250 words. Focus only on essential information that provides a clear picture of client progress and current status.answer in html with inline css format`  ],
             ["human", "Please summarize my recent interactions."]
         ]);
 
